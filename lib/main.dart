@@ -8,7 +8,8 @@ void main() {
   )
   ); //앱 시작해주세요~ / 괄호안에 앱 메인페이지 입력하면됨
 }
-aaa
+
+meme
 
 //앱 메인페이지 만드는법임
 class MyApp extends StatefulWidget {
