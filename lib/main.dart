@@ -18,6 +18,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
 
+  var total = 0;  //총 친구수
+  var name = [];  //리스트임. 전화번호도 저장할거라 이 리스트안에 [이름, 전번] 이렇게 되어있는 리스트들을 다시 저장할거임.
 
   //앱권한요청하는 함수 - 이 함수는 패키지만든사람이 정한 사용법일뿐..
   getPermission() async {
@@ -29,14 +31,13 @@ class _MyAppState extends State<MyApp> {
       setState(() {
         name = contacts;  //name은 state이기때문에 변경하려면 setState()안에 써야함.
       });
-
     } else if (status.isDenied) { //허락안했으면 여기 실행
       print('거절됨');
       Permission.contacts.request();  //허락해달라고 팝업창 띄우는 코드임
+    }else if(status.isPermanentlyDenied) {  //안드로이드에서 아예 앱설정을 꺼둔 경우
+      openAppSettings();  //앱 설정화면 켜줌. 거절당하면 유저가 앱설정 들어가서 직접 권한 켜야함
     }
-
   }
-
 
   //initState안에 적은 코드는 위젯이 로드될때 한번 실행됨.즉 여기선 MyApp이 처음 실행될때 한번 실행됨
   @override
@@ -44,15 +45,10 @@ class _MyAppState extends State<MyApp> {
     super.initState();
   }
 
-
-  var total = 0;  //총 친구수
-  var name = [];  //리스트임. 전화번호도 저장할거라 이 리스트안에 [이름, 전번] 이렇게 되어있는 리스트들을 다시 저장할거임.
-
-
   //친구 추가해주는 함수 생성
-  addOne(inputData){
+  addOne(input){
     setState(() {   //state를 수정하려면 이렇게 setState안에 써야함
-      name.add( inputData  );
+      name.add( input );
       total++;
     });
   }
@@ -79,7 +75,7 @@ class _MyAppState extends State<MyApp> {
 
             // name.sort()       //그냥 string 오름차순 정렬임 (한글이면 가나다순 정렬됨)
             return ListTile(
-              leading: Image.asset('assets/logo.png'),
+              leading: Image.asset('assets/logo.png', width: 100, ),
               title: Text(name[i].givenName.toString()),
               trailing: TextButton(child: Text('삭제하기'), onPressed: (){
                 setState(() {
@@ -98,14 +94,14 @@ class _MyAppState extends State<MyApp> {
 class DialogUI extends StatelessWidget {
   DialogUI({Key? key, this.addOne}) : super(key: key);
   final addOne;
-  var inputData = TextEditingController();  //사용자가 입력한 값을 저장해주려고
+  var inputData = TextEditingController();  //사용자가 입력한 이름을 저장해주려고
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
         child: SizedBox(
           width: 400,
-          height: 250,
+          height: 450,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -125,13 +121,16 @@ class DialogUI extends StatelessWidget {
                   TextButton(child: Text('취소'), onPressed: (){
                     Navigator. pop(context);    //현재 페이지 닫아주는 명령
                   })      ,
-                  TextButton(child: Text('완료'), onPressed: (){
-                    if( inputData.text.isNotEmpty) {
-                      addOne(inputData.text);
+                  TextButton(child: Text('완료'), onPressed: () async {
+                    if( inputData.text.isNotEmpty ) {
+                      //폰에 새 연락처를 저장해주는 작업
+                      var newPerson = Contact() ;
+                      newPerson.givenName = inputData.text;   //이름
+                      //newPerson.familyName = '김'; //성
+                      await ContactsService.addContact(newPerson);  //폰 연락처에 실제 새로운 연락처 정보 저장시킴. await붙여보기
+                      addOne(newPerson);  //name리스트에 추가해줌
                     }
                     Navigator. pop(context);    //현재 페이지 닫아주는 명령
-
-
                   })
                 ],)
             ],
@@ -140,9 +139,6 @@ class DialogUI extends StatelessWidget {
     );
   }
 }
-
-
-
 
 
 class profile extends StatelessWidget {
