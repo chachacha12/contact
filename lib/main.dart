@@ -111,7 +111,17 @@ class DialogUI extends StatelessWidget {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-                child: TextField( controller: inputData,),
+                child: TextField( controller: inputData,
+                  decoration: InputDecoration(
+                      icon: Icon(Icons.star) ,
+                      hintText: 'hint',
+                      filled: true,
+                      fillColor: Colors.blue.shade100,
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide.none,
+                      )
+                  ),
+                ),
               ),
 
 
